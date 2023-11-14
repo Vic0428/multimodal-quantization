@@ -3,3 +3,4 @@
 *.png
 *pycache*/**
 *.ipynb
+*.log

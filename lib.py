@@ -1,5 +1,7 @@
-from enum import Enum
 import re
+import numpy as np
+from enum import Enum
+from dataclasses import dataclass
 
 """
 Patterns to match the parameter
@@ -13,7 +15,13 @@ class Pattern(Enum):
     decoder_atten_pattern = r'language_model\.model\.decoder\.layers\.(\d+)\.self_attn\.out_proj\.weight'
     qformer_atten_pattern = r'qformer\.encoder\.layer\.(\d+)\.attention\.output\.dense\.weight' 
 
-def find_parameters_based_on_patterns(model, pattern: Pattern):
+@dataclass
+class Parameter:
+    layer_id: int
+    data: np.ndarray
+
+
+def find_parameters_based_on_patterns(model, pattern: Pattern)-> list[Parameter]:
     """
     Match model parameter names with pattern (regular expression string)
     """
@@ -23,6 +31,9 @@ def find_parameters_based_on_patterns(model, pattern: Pattern):
     for key in model_parameters.keys():
         match = pattern.match(key)
         if match:
-            layer_id = match.group(1)
-            data.append(model_parameters[key].view(-1).numpy())
+            layer_id = int(match.group(1))
+            data.append(Parameter(
+                layer_id=layer_id,
+                data=model_parameters[key].view(-1).numpy()
+            ))
     return data
